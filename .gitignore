@@ -1,0 +1,28 @@
+# dependencies
+node_modules/
+
+# env
+.env
+.env.local
+
+# build output
+client/dist/
+client/dist-ssr/
+
+# generated audio + database
+server/tmp/audio/*
+!server/tmp/audio/.gitkeep
+server/db/*.sqlite
+server/db/*.sqlite-journal
+server/db/*.sqlite-wal
+server/db/*.sqlite-shm
+
+# logs
+*.log
+npm-debug.log*
+
+# editor / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/

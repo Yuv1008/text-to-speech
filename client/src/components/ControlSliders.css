@@ -1,0 +1,96 @@
+.control-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.control-sliders__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.control-sliders__label {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.control-sliders__reset {
+  background: none;
+  border: none;
+  color: var(--accent-solid);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+.control-sliders__reset:disabled {
+  color: var(--text-tertiary);
+}
+.control-sliders__reset:not(:disabled):hover {
+  text-decoration: underline;
+}
+
+.control-slider__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-2);
+}
+
+.control-slider__head label {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}
+
+.control-slider__value {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  min-width: 3.5ch;
+  text-align: right;
+}
+
+.control-slider input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--bg-3);
+  outline-offset: 6px;
+}
+
+.control-slider input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-gradient);
+  border: 2px solid var(--bg-1);
+  box-shadow: 0 0 0 1px var(--border-strong);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.control-slider input[type='range']::-webkit-slider-thumb:hover {
+  transform: scale(1.12);
+}
+
+.control-slider input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-gradient);
+  border: 2px solid var(--bg-1);
+  box-shadow: 0 0 0 1px var(--border-strong);
+  cursor: pointer;
+}
+
+.control-slider input[type='range']::-moz-range-track {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--bg-3);
+}

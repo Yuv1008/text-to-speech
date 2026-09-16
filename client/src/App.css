@@ -1,0 +1,145 @@
+.app-shell {
+  min-height: 100vh;
+  padding: var(--space-7) var(--space-4) var(--space-8);
+}
+
+.app-header {
+  max-width: 1040px;
+  margin: 0 auto var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.app-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--accent-gradient);
+  color: #0a0a0f;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.app-header h1 {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+}
+
+.app-header p {
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+  max-width: 56ch;
+}
+
+.app-grid {
+  max-width: 1040px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+  align-items: start;
+  /* Grid items default to min-width:auto (their content's intrinsic size),
+     which can force a track wider than its share — always override in a
+     fluid grid so children shrink with the viewport instead of overflowing it. */
+  min-width: 0;
+}
+
+.app-grid > * {
+  min-width: 0;
+}
+
+@media (min-width: 960px) {
+  .app-grid {
+    grid-template-columns: 1.6fr 1fr;
+  }
+}
+
+.generator-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.history-card {
+  background: var(--bg-1);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-card);
+  position: sticky;
+  top: var(--space-5);
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.field-row > * {
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+  .history-card {
+    position: static;
+  }
+  .app-shell {
+    padding: var(--space-5) var(--space-3) var(--space-6);
+  }
+  .generator-card {
+    padding: var(--space-5) var(--space-4);
+  }
+}
+
+.result-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-hairline);
+  animation: rise-in var(--duration-med) var(--ease-out);
+}
+
+.result-actions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result-section {
+    animation: none;
+  }
+}

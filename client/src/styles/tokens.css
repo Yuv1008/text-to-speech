@@ -1,0 +1,75 @@
+:root {
+  /* ---- Layered near-black background ---- */
+  --bg-0: #08090c;
+  --bg-1: #0e1015;
+  --bg-2: #14171e;
+  --bg-3: #1b1f28;
+  --border-hairline: #262b36;
+  --border-strong: #343b4a;
+
+  /* ---- Text ---- */
+  --text-primary: #eef0f5;
+  --text-secondary: #9aa3b7;
+  --text-tertiary: #5c6478;
+
+  /* ---- Accent: one deliberate gradient, used sparingly ---- */
+  --accent-a: #ff4f8b;
+  --accent-b: #6a5bff;
+  --accent-gradient: linear-gradient(135deg, var(--accent-a), var(--accent-b));
+  --accent-solid: #8b6bff;
+  --accent-glow: rgba(139, 107, 255, 0.35);
+
+  /* ---- Semantic (separate from the accent) ---- */
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --danger-strong: #ef4444;
+
+  /* ---- Glass surface ---- */
+  --glass-bg: rgba(20, 23, 30, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.04);
+
+  /* ---- Type ---- */
+  --font-display: 'Outfit', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Public Sans', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+
+  --fs-2xl: clamp(1.9rem, 1.5rem + 1.8vw, 2.75rem);
+  --fs-xl: clamp(1.4rem, 1.2rem + 0.9vw, 1.75rem);
+  --fs-lg: 1.25rem;
+  --fs-md: 1rem;
+  --fs-sm: 0.875rem;
+  --fs-xs: 0.75rem;
+
+  /* ---- Space ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* ---- Shape & motion ---- */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-full: 999px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 140ms;
+  --duration-med: 260ms;
+
+  --shadow-card: 0 1px 1px rgba(0, 0, 0, 0.2), 0 24px 48px -24px rgba(0, 0, 0, 0.6);
+  --focus-ring: 0 0 0 3px var(--accent-glow);
+
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-med: 0ms;
+  }
+}

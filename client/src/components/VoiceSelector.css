@@ -1,0 +1,130 @@
+.voice-selector {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  /* <fieldset> has a browser-default min-content width that ignores its grid
+     track, which forces the whole layout wider than the viewport on mobile. */
+  min-width: 0;
+}
+
+.voice-selector__label {
+  padding: 0;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.voice-selector__empty {
+  font-size: var(--fs-sm);
+  color: var(--text-tertiary);
+  padding: var(--space-3) 0;
+}
+
+.voice-selector__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-2);
+}
+
+.voice-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-hairline);
+  background: var(--bg-2);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.voice-card:hover {
+  border-color: var(--border-strong);
+}
+
+.voice-card:active {
+  transform: scale(0.98);
+}
+
+.voice-card--selected {
+  border-color: var(--accent-solid);
+  background: color-mix(in srgb, var(--accent-solid) 12%, var(--bg-2));
+}
+
+.voice-card:has(.voice-card__input:focus-visible) {
+  box-shadow: var(--focus-ring);
+}
+
+.voice-card__input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.voice-card__name {
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  color: var(--text-primary);
+}
+
+.voice-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.badge {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  padding: 3px 7px;
+  border-radius: var(--radius-full);
+  background: var(--bg-3);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.badge--female {
+  color: #ffb6d9;
+  background: rgba(255, 79, 139, 0.14);
+}
+.badge--male {
+  color: #a9b7ff;
+  background: rgba(106, 91, 255, 0.16);
+}
+.badge--muted {
+  color: var(--text-tertiary);
+}
+
+.voice-card--skeleton {
+  height: 62px;
+  background: linear-gradient(90deg, var(--bg-2) 25%, var(--bg-3) 50%, var(--bg-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-color: transparent;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .voice-card--skeleton {
+    animation: none;
+  }
+}

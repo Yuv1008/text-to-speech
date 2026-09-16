@@ -1,0 +1,198 @@
+{
+  "info": {
+    "name": "Text to Speech API",
+    "_postman_id": "b6b6f6b0-0f31-4a7a-9c9a-tts000000001",
+    "description": "Every endpoint in the API contract, plus every documented error case (section 5). Set {{baseUrl}} to your running server (default http://localhost:5050/api).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [{ "key": "baseUrl", "value": "http://localhost:5050/api" }],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Get health",
+          "request": { "method": "GET", "url": "{{baseUrl}}/health" }
+        }
+      ]
+    },
+    {
+      "name": "Voices",
+      "item": [
+        {
+          "name": "List all voices",
+          "request": { "method": "GET", "url": "{{baseUrl}}/voices" }
+        },
+        {
+          "name": "List voices for a language",
+          "request": { "method": "GET", "url": "{{baseUrl}}/voices?language=hi-IN" }
+        },
+        {
+          "name": "Error — UNSUPPORTED_LANGUAGE",
+          "request": { "method": "GET", "url": "{{baseUrl}}/voices?language=zz-ZZ" }
+        }
+      ]
+    },
+    {
+      "name": "TTS",
+      "item": [
+        {
+          "name": "Synthesize speech",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/tts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Hello from the text to speech app.\",\n  \"language\": \"en-US\",\n  \"voice\": \"ava\",\n  \"rate\": 1.0,\n  \"pitch\": 0,\n  \"format\": \"mp3\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Error — EMPTY_TEXT",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/tts",
+            "body": { "mode": "raw", "raw": "{\n  \"text\": \"   \",\n  \"language\": \"en-US\",\n  \"voice\": \"ava\"\n}" }
+          }
+        },
+        {
+          "name": "Error — TEXT_TOO_LONG",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/tts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"<1001+ characters>\",\n  \"language\": \"en-US\",\n  \"voice\": \"ava\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Error — UNSUPPORTED_LANGUAGE",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/tts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"hello\",\n  \"language\": \"zz-ZZ\",\n  \"voice\": \"ava\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Error — INVALID_VOICE",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/tts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"hello\",\n  \"language\": \"en-US\",\n  \"voice\": \"nonexistent-voice\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Error — VOICE_LANGUAGE_MISMATCH",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/tts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"hello\",\n  \"language\": \"fr-FR\",\n  \"voice\": \"ava\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Error — INVALID_RATE",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/tts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"hello\",\n  \"language\": \"en-US\",\n  \"voice\": \"ava\",\n  \"rate\": 3.5\n}"
+            }
+          }
+        },
+        {
+          "name": "Error — INVALID_PITCH",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/tts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"hello\",\n  \"language\": \"en-US\",\n  \"voice\": \"ava\",\n  \"pitch\": 50\n}"
+            }
+          }
+        },
+        {
+          "name": "Error — RATE_LIMITED (send 11+ times within a minute)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/tts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"burst\",\n  \"language\": \"en-US\",\n  \"voice\": \"ava\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Error — PROVIDER_AUTH_FAILED (set TTS_PROVIDER=google/elevenlabs with no key)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/tts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"hello\",\n  \"language\": \"en-US\",\n  \"voice\": \"ava\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Error — INTERNAL (malformed JSON body)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/tts",
+            "body": { "mode": "raw", "raw": "{ \"text\": \"unterminated" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "History",
+      "item": [
+        {
+          "name": "List history",
+          "request": { "method": "GET", "url": "{{baseUrl}}/history?limit=20" }
+        },
+        {
+          "name": "Delete one entry",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/history/:id" }
+        },
+        {
+          "name": "Error — NOT_FOUND (delete unknown id)",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/history/does-not-exist" }
+        },
+        {
+          "name": "Clear all history",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/history" }
+        }
+      ]
+    },
+    {
+      "name": "Infra",
+      "item": [
+        {
+          "name": "Error — NOT_FOUND (unmatched route)",
+          "request": { "method": "GET", "url": "{{baseUrl}}/nope" }
+        }
+      ]
+    }
+  ]
+}
