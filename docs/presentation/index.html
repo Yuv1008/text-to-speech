@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Text to Speech — Project Presentation</title>
+
+<!-- Same type system as the shipped app: geometric display + neutral body + mono for data -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================
+   CSS CUSTOM PROPERTIES (THEME)
+   Lifted directly from the shipped app's tokens.css —
+   the deck should read as part of the same product.
+   =========================================== */
+:root {
+    --bg-0: #08090c;
+    --bg-1: #0e1015;
+    --bg-2: #14171e;
+    --bg-3: #1b1f28;
+    --border-hairline: #262b36;
+    --border-strong: #343b4a;
+
+    --text-primary: #eef0f5;
+    --text-secondary: #9aa3b7;
+    --text-tertiary: #5c6478;
+
+    --accent-a: #ff4f8b;
+    --accent-b: #6a5bff;
+    --accent-gradient: linear-gradient(135deg, var(--accent-a), var(--accent-b));
+    --accent-solid: #8b6bff;
+    --accent-glow: rgba(139, 107, 255, 0.35);
+
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+
+    --font-display: 'Outfit', sans-serif;
+    --font-body: 'Public Sans', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --duration-normal: 0.6s;
+
+    --stage-bg: #000;
+    --slide-bg: var(--bg-0);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-body);
+    color: var(--text-primary);
+}
+
+/* ===========================================
+   MANDATORY FIXED 16:9 STAGE (viewport-base.css, in full)
+   =========================================== */
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--stage-bg, #000); }
+.deck-viewport { position: fixed; inset: 0; overflow: hidden; background: var(--stage-bg, #000); }
+.deck-stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0; background: var(--slide-bg, #fff); }
+.slide { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; display: block; visibility: hidden; opacity: 0; pointer-events: none; background: var(--slide-bg, #fff); }
+.slide.active, .slide.visible { visibility: visible; opacity: 1; pointer-events: auto; z-index: 1; }
+img, video, canvas, svg { max-width: 100%; max-height: 100%; }
+.deck-controls { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 1000; }
+@media print {
+    html, body { width: 1920px; height: auto; overflow: visible; background: #fff; }
+    .deck-viewport { position: static; overflow: visible; background: #fff; }
+    .deck-stage { position: static; width: auto; height: auto; transform: none !important; background: none; }
+    .slide { position: relative; display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; width: 1920px; height: 1080px; break-after: page; page-break-after: always; }
+    .slide:last-child { break-after: auto; page-break-after: auto; }
+    .deck-controls { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+}
+
+/* ===========================================
+   ATMOSPHERE — layered radial glow, matches the app's global.css
+   =========================================== */
+.slide {
+    background:
+        radial-gradient(1200px 600px at 15% -10%, rgba(106, 91, 255, 0.14), transparent 60%),
+        radial-gradient(900px 500px at 100% 0%, rgba(255, 79, 139, 0.10), transparent 55%),
+        var(--bg-0);
+}
+
+/* ===========================================
+   REVEAL ANIMATIONS — fade + rise, staggered
+   =========================================== */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity var(--duration-normal) var(--ease-out-expo), transform var(--duration-normal) var(--ease-out-expo); }
+.slide.visible .reveal { opacity: 1; transform: translateY(0); }
+.reveal:nth-child(1) { transition-delay: .05s; } .reveal:nth-child(2) { transition-delay: .14s; }
+.reveal:nth-child(3) { transition-delay: .23s; } .reveal:nth-child(4) { transition-delay: .32s; }
+.reveal:nth-child(5) { transition-delay: .41s; } .reveal:nth-child(6) { transition-delay: .50s; }
+.reveal:nth-child(7) { transition-delay: .59s; } .reveal:nth-child(8) { transition-delay: .68s; }
+
+/* ===========================================
+   SHARED SLIDE CHROME
+   =========================================== */
+.slide-pad { position: absolute; inset: 0; padding: 88px 120px; display: flex; flex-direction: column; }
+.eyebrow { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 20px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-a); margin-bottom: 20px; }
+.eyebrow::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent-gradient); }
+h1.deck-title { font-family: var(--font-display); font-weight: 800; font-size: 96px; line-height: 1.05; letter-spacing: -.01em; }
+h2.slide-title { font-family: var(--font-display); font-weight: 700; font-size: 58px; letter-spacing: -.01em; margin-bottom: 44px; }
+.dek { font-size: 30px; color: var(--text-secondary); line-height: 1.55; max-width: 62ch; }
+.page-num { position: absolute; bottom: 44px; right: 60px; font-family: var(--font-mono); font-size: 18px; color: var(--text-tertiary); }
+.brand-mark { width: 64px; height: 64px; border-radius: 16px; background: var(--accent-gradient); display: grid; place-items: center; color: #0a0a0f; flex: none; }
+.brand-row { display: flex; align-items: center; gap: 24px; margin-bottom: 28px; }
+
+.card { background: var(--bg-2); border: 1px solid var(--border-hairline); border-radius: 20px; padding: 40px; }
+.chip { font-family: var(--font-mono); font-size: 18px; color: var(--text-secondary); background: var(--bg-2); border: 1px solid var(--border-hairline); padding: 10px 20px; border-radius: 10px; }
+.pill { font-size: 15px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; padding: 5px 12px; border-radius: 999px; background: var(--bg-3); color: var(--text-secondary); }
+
+/* ===========================================
+   DECK CONTROLS
+   =========================================== */
+.deck-controls { display: flex; align-items: center; gap: 18px; background: rgba(20,23,30,.85); backdrop-filter: blur(12px); border: 1px solid var(--border-strong); border-radius: 999px; padding: 10px 20px; }
+.deck-controls button { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 20px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; }
+.deck-controls button:hover { color: var(--text-primary); background: var(--bg-3); }
+.deck-controls .count { font-family: var(--font-mono); font-size: 15px; color: var(--text-tertiary); min-width: 60px; text-align: center; }
+
+/* ===========================================
+   EDIT MODE (inline editing affordance)
+   =========================================== */
+.edit-hotzone { position: fixed; top: 0; left: 0; width: 90px; height: 90px; z-index: 10000; cursor: pointer; }
+.edit-toggle { position: fixed; top: 18px; left: 18px; opacity: 0; pointer-events: none; transition: opacity .3s ease; z-index: 10001; background: var(--bg-3); border: 1px solid var(--border-strong); color: var(--text-primary); width: 40px; height: 40px; border-radius: 50%; font-size: 16px; }
+.edit-toggle.show, .edit-toggle.active { opacity: 1; pointer-events: auto; }
+.edit-toggle.active { background: var(--accent-gradient); color: #0a0a0f; }
+[contenteditable="true"] { outline: 1px dashed var(--accent-solid); outline-offset: 4px; border-radius: 4px; }
+
+/* ===========================================
+   SLIDE 1 — TITLE
+   =========================================== */
+.title-slide .slide-pad { justify-content: center; align-items: flex-start; gap: 28px; }
+.title-slide .stack-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
+
+/* ===========================================
+   SLIDE 2 — PROBLEM & OBJECTIVES
+   =========================================== */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; flex: 1; min-height: 0; }
+.obj-list { list-style: none; display: flex; flex-direction: column; gap: 20px; margin-top: 8px; }
+.obj-list li { display: flex; gap: 16px; align-items: flex-start; font-size: 26px; color: var(--text-primary); }
+.obj-list li::before { content: ""; flex: none; width: 10px; height: 10px; border-radius: 50%; margin-top: 12px; background: var(--accent-gradient); }
+
+/* ===========================================
+   SLIDE 3 — FEATURE GRID
+   =========================================== */
+.feature-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; flex: 1; }
+.feature-card { background: var(--bg-2); border: 1px solid var(--border-hairline); border-radius: 18px; padding: 32px 28px; display: flex; flex-direction: column; gap: 14px; }
+.feature-card .num { font-family: var(--font-mono); font-size: 18px; color: var(--accent-a); }
+.feature-card h3 { font-family: var(--font-display); font-size: 26px; font-weight: 700; }
+.feature-card p { font-size: 18px; color: var(--text-secondary); line-height: 1.5; }
+
+/* ===========================================
+   SLIDE 4 — FLOW DIAGRAM
+   =========================================== */
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 0; flex: 1; }
+.flow-node { background: var(--bg-2); border: 1px solid var(--border-strong); border-radius: 18px; padding: 32px 36px; text-align: center; min-width: 240px; }
+.flow-node.accent { border-color: var(--accent-solid); background: color-mix(in srgb, var(--accent-solid) 14%, var(--bg-2)); }
+.flow-node .label { font-family: var(--font-display); font-weight: 700; font-size: 26px; }
+.flow-node .sub { font-family: var(--font-mono); font-size: 16px; color: var(--text-tertiary); margin-top: 8px; }
+.flow-arrow { width: 84px; height: 3px; background: var(--accent-gradient); position: relative; margin: 0 8px; }
+.flow-arrow::after { content: ""; position: absolute; right: -2px; top: -7px; border: 8px solid transparent; border-left-color: var(--accent-b); }
+
+/* ===========================================
+   SLIDE 5 — TECH STACK
+   =========================================== */
+.stack-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; flex: 1; }
+.stack-col h3 { font-family: var(--font-mono); font-size: 18px; text-transform: uppercase; letter-spacing: .08em; color: var(--accent-a); margin-bottom: 18px; }
+.stack-col ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.stack-col li { font-size: 22px; color: var(--text-primary); padding: 14px 18px; background: var(--bg-2); border: 1px solid var(--border-hairline); border-radius: 12px; }
+
+/* ===========================================
+   SLIDE 6 — PROVIDER FACTORY
+   =========================================== */
+.factory-wrap { display: flex; align-items: center; gap: 40px; flex: 1; justify-content: center; }
+.factory-box { background: var(--bg-2); border: 2px solid var(--accent-solid); border-radius: 20px; padding: 40px 48px; text-align: center; }
+.factory-box .label { font-family: var(--font-display); font-size: 30px; font-weight: 700; }
+.factory-box .sub { font-family: var(--font-mono); color: var(--text-tertiary); margin-top: 10px; font-size: 17px; }
+.adapters-col { display: flex; flex-direction: column; gap: 18px; }
+.adapter-pill { display: flex; align-items: center; gap: 14px; background: var(--bg-2); border: 1px solid var(--border-hairline); border-radius: 14px; padding: 18px 28px; font-size: 22px; }
+.adapter-pill .dot { width: 12px; height: 12px; border-radius: 50%; }
+.dot.mock { background: var(--success); } .dot.google { background: #4dabf7; } .dot.eleven { background: var(--accent-a); }
+
+/* ===========================================
+   SLIDE 7 — API TABLE
+   =========================================== */
+table.api-table { width: 100%; border-collapse: collapse; font-size: 21px; }
+table.api-table th { text-align: left; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .06em; font-size: 15px; color: var(--text-tertiary); padding: 0 20px 16px; border-bottom: 1px solid var(--border-strong); }
+table.api-table td { padding: 20px; border-bottom: 1px solid var(--border-hairline); vertical-align: top; }
+table.api-table tr:last-child td { border-bottom: none; }
+.method { font-family: var(--font-mono); font-weight: 700; padding: 4px 12px; border-radius: 8px; font-size: 16px; }
+.method.get { background: rgba(77,171,247,.15); color: #4dabf7; }
+.method.post { background: rgba(52,211,153,.15); color: var(--success); }
+.method.delete { background: rgba(248,113,113,.15); color: var(--danger); }
+
+/* ===========================================
+   SLIDE 8 — ERROR CODES
+   =========================================== */
+.error-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 40px; flex: 1; align-content: start; }
+.error-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg-2); border: 1px solid var(--border-hairline); border-radius: 12px; padding: 16px 22px; }
+.error-row code { font-family: var(--font-mono); font-size: 19px; color: var(--text-primary); }
+.status-badge { font-family: var(--font-mono); font-weight: 700; font-size: 16px; padding: 4px 12px; border-radius: 999px; }
+.status-badge.s4 { background: rgba(251,191,36,.16); color: var(--warning); }
+.status-badge.s5 { background: rgba(248,113,113,.16); color: var(--danger); }
+
+/* ===========================================
+   SLIDE 9 — SECURITY
+   =========================================== */
+.sec-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; flex: 1; align-content: start; }
+.sec-item { display: flex; gap: 18px; align-items: flex-start; }
+.sec-icon { flex: none; width: 44px; height: 44px; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--border-strong); display: grid; place-items: center; color: var(--accent-a); font-size: 20px; }
+.sec-item h4 { font-family: var(--font-display); font-size: 23px; margin-bottom: 4px; }
+.sec-item p { font-size: 18px; color: var(--text-secondary); line-height: 1.4; }
+
+/* ===========================================
+   SLIDE 10/11 — SCREENSHOTS
+   =========================================== */
+.shot-wrap { flex: 1; display: flex; align-items: center; justify-content: center; gap: 60px; }
+.shot-frame { border-radius: 20px; overflow: hidden; border: 1px solid var(--border-strong); box-shadow: 0 40px 80px -30px rgba(0,0,0,.7); }
+.shot-frame.desktop img { display: block; height: 720px; width: auto; }
+.shot-frame.mobile img { display: block; height: 780px; width: auto; }
+.shot-caption { max-width: 480px; display: flex; flex-direction: column; gap: 20px; }
+.shot-caption li { font-size: 22px; color: var(--text-secondary); list-style: none; padding-left: 30px; position: relative; }
+.shot-caption li::before { content: "✓"; position: absolute; left: 0; color: var(--success); font-weight: 700; }
+
+/* ===========================================
+   SLIDE 12 — VERIFICATION
+   =========================================== */
+.verify-col { display: flex; flex-direction: column; gap: 16px; }
+.verify-item { display: flex; align-items: center; gap: 16px; font-size: 22px; }
+.verify-item .check { flex: none; width: 30px; height: 30px; border-radius: 50%; background: rgba(52,211,153,.15); color: var(--success); display: grid; place-items: center; font-size: 15px; font-weight: 700; }
+.bug-card { background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.3); border-radius: 16px; padding: 24px 28px; margin-top: 8px; }
+.bug-card h4 { color: var(--danger); font-family: var(--font-mono); font-size: 17px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+.bug-card p { font-size: 19px; color: var(--text-secondary); }
+
+/* ===========================================
+   SLIDE 13 — DEPLOYMENT
+   =========================================== */
+.deploy-row { display: flex; gap: 40px; flex: 1; }
+.deploy-card { flex: 1; background: var(--bg-2); border: 1px solid var(--border-hairline); border-radius: 20px; padding: 40px; display: flex; flex-direction: column; gap: 16px; }
+.deploy-card .platform { font-family: var(--font-mono); font-size: 16px; text-transform: uppercase; letter-spacing: .08em; color: var(--accent-a); }
+.deploy-card h3 { font-family: var(--font-display); font-size: 32px; }
+.deploy-card .url { font-family: var(--font-mono); font-size: 19px; color: var(--text-primary); background: var(--bg-3); padding: 12px 16px; border-radius: 10px; word-break: break-all; }
+
+/* ===========================================
+   SLIDE 14 — LIMITATIONS
+   =========================================== */
+.limit-list { display: flex; flex-direction: column; gap: 18px; }
+.limit-list li { list-style: none; display: flex; gap: 16px; font-size: 23px; color: var(--text-primary); }
+.limit-list li .tag { flex: none; font-family: var(--font-mono); font-size: 14px; padding: 3px 10px; border-radius: 6px; background: var(--bg-3); color: var(--text-tertiary); height: fit-content; margin-top: 4px; }
+
+/* ===========================================
+   SLIDE 15 — DELIVERABLES CHECKLIST
+   =========================================== */
+.deliv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px 40px; flex: 1; align-content: start; }
+.deliv-item { display: flex; align-items: center; gap: 16px; font-size: 23px; }
+.deliv-item .check { flex: none; width: 28px; height: 28px; border-radius: 8px; background: var(--accent-gradient); color: #0a0a0f; display: grid; place-items: center; font-size: 15px; font-weight: 700; }
+
+/* ===========================================
+   SLIDE 16 — CLOSING
+   =========================================== */
+.closing-slide .slide-pad { justify-content: center; align-items: center; text-align: center; gap: 24px; }
+.closing-links { display: flex; gap: 20px; margin-top: 20px; }
+.closing-links a { font-family: var(--font-mono); font-size: 20px; color: var(--text-primary); background: var(--bg-2); border: 1px solid var(--border-strong); padding: 14px 28px; border-radius: 12px; text-decoration: none; }
+.closing-links a:hover { border-color: var(--accent-solid); }
+
+@media (prefers-reduced-motion: reduce) { .reveal { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="deck-viewport">
+  <main class="deck-stage" id="deckStage">
+
+    <!-- ============ SLIDE 1: TITLE ============ -->
+    <section class="slide title-slide active">
+      <div class="slide-pad">
+        <div class="brand-row reveal">
+          <span class="brand-mark">
+            <svg width="30" height="30" viewBox="0 0 16 16" fill="none">
+              <path d="M2 6.5h2L7 3v10L4 9.5H2v-3z" fill="currentColor"/>
+              <path d="M9.5 5.3a4 4 0 010 5.4M11.3 3.5a6.6 6.6 0 010 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+            </svg>
+          </span>
+          <span class="eyebrow" style="margin:0">Project Presentation</span>
+        </div>
+        <h1 class="deck-title reveal">Text to Speech</h1>
+        <p class="dek reveal">A full-stack web app that turns typed or pasted text into natural-sounding speech — pick a language and voice, shape the delivery, play it back, and download it.</p>
+        <div class="stack-row reveal">
+          <span class="chip">React 18 + Vite</span>
+          <span class="chip">Node.js + Express</span>
+          <span class="chip">SQLite</span>
+          <span class="chip">Google TTS · ElevenLabs</span>
+        </div>
+      </div>
+      <div class="page-num">Yuvraj Goraya · 01 / 16</div>
+    </section>
+
+    <!-- ============ SLIDE 2: PROBLEM & OBJECTIVES ============ -->
+    <section class="slide">
+      <div class="slide-pad">
+        <div class="eyebrow reveal">Why this project</div>
+        <h2 class="slide-title reveal">Problem &amp; objectives</h2>
+        <div class="two-col">
+          <div class="reveal">
+            <h3 style="font-family:var(--font-display);font-size:28px;margin-bottom:16px;color:var(--text-primary)">Problem statement</h3>
+            <p style="font-size:24px;color:var(--text-secondary);line-height:1.6">Reading large amounts of text isn't accessible to everyone. A text-to-speech tool gives people a second way to consume written information — through audio instead of the page.</p>
+          </div>
+          <div class="reveal">
+            <h3 style="font-family:var(--font-display);font-size:28px;margin-bottom:8px;color:var(--text-primary)">Objectives</h3>
+            <ul class="obj-list">
+              <li>Understand frontend ↔ backend communication over REST</li>
+              <li>Integrate a real text-to-speech service behind a clean API</li>
+              <li>Validate input and handle failure explicitly, never silently</li>
+              <li>Ship a responsive, accessible, production-feeling UI</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="page-num">02 / 16</div>
+    </section>
+
+    <!-- ============ SLIDE 3: FEATURES ============ -->
+    <section class="slide">
+      <div class="slide-pad">
+        <div class="eyebrow reveal">What it does</div>
+        <h2 class="slide-title reveal">Core features</h2>
+        <div class="feature-grid">
+          <div class="feature-card reveal"><span class="num">01</span><h3>Text input</h3><p>Live character + word count, soft warning at 80%, hard cap at 1000, clear button.</p></div>
+          <div class="feature-card reveal"><span class="num">02</span><h3>Language &amp; voice</h3><p>9 locales, 12 voices. Voice list auto-resets to match the selected language.</p></div>
+          <div class="feature-card reveal"><span class="num">03</span><h3>Delivery control</h3><p>Speed (0.5–2.0×) and pitch (‑10..10) sliders with live numeric readout.</p></div>
+          <div class="feature-card reveal"><span class="num">04</span><h3>Generate speech</h3><p>Disabled on invalid input or in-flight request, inline loading spinner.</p></div>
+          <div class="feature-card reveal"><span class="num">05</span><h3>Custom audio player</h3><p>Play/pause, seekable scrubber, volume + mute, speed chip, live waveform.</p></div>
+          <div class="feature-card reveal"><span class="num">06</span><h3>Download</h3><p>Readable filename derived from the source text, proper attachment headers.</p></div>
+          <div class="feature-card reveal"><span class="num">07</span><h3>History</h3><p>Recent generations in SQLite — replay, delete one, or clear all.</p></div>
+          <div class="feature-card reveal"><span class="num">08</span><h3>Error handling</h3><p>11 distinct error codes — validation, rate limits, provider &amp; network failure.</p></div>
+        </div>
+      </div>
+      <div class="page-num">03 / 16</div>
+    </section>
+
+    <!-- ============ SLIDE 4: FLOW DIAGRAM ============ -->
+    <section class="slide">
+      <div class="slide-pad">
+        <div class="eyebrow reveal">Request lifecycle</div>
+        <h2 class="slide-title reveal">High-level application flow</h2>
+        <div class="flow-row reveal">
+          <div class="flow-node"><div class="label">User</div><div class="sub">types + selects</div></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node accent"><div class="label">React client</div><div class="sub">Vite · axios</div></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node accent"><div class="label">Express API</div><div class="sub">validate · cache · store</div></div>
+          <div class="flow-arrow"></div>
+          <div class="flow-node"><div class="label">TTS provider</div><div class="sub">mock · Google · ElevenLabs</div></div>
+        </div>
+        <p class="dek reveal" style="margin:0 auto;text-align:center;max-width:900px">Audio comes back through the same path — Express writes it to disk and returns a URL; the client streams it straight into the custom player.</p>
+      </div>
+      <div class="page-num">04 / 16</div>
+    </section>
+
+    <!-- ============ SLIDE 5: TECH STACK ============ -->
+    <section class="slide">
+      <div class="slide-pad">
+        <div class="eyebrow reveal">Stack</div>
+        <h2 class="slide-title reveal">Technology choices</h2>
+        <div class="stack-grid">
+          <div class="stack-col reveal">
+            <h3>Client</h3>
+            <ul><li>React 18 + Vite</li><li>Plain CSS + variables</li><li>Axios</li><li>Web Audio API (waveform)</li></ul>
+          </div>
+          <div class="stack-col reveal">
+            <h3>Server</h3>
+            <ul><li>Node.js + Express (ESM)</li><li>zod validation</li><li>helmet · cors · rate-limit</li><li>better-sqlite3</li></ul>
+          </div>
+          <div class="stack-col reveal">
+            <h3>Speech</h3>
+            <ul><li>Offline mock (zero keys)</li><li>Google Cloud TTS</li><li>ElevenLabs</li><li>One factory, one interface</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="page-num">05 / 16</div>
+    </section>
+
+    <!-- ============ SLIDE 6: PROVIDER FACTORY ============ -->
+    <section class="slide">
+      <div class="slide-pad">
+        <div class="eyebrow reveal">Swappable by design</div>
+        <h2 class="slide-title reveal">One interface, three providers</h2>
+        <div class="factory-wrap reveal">
+          <div class="factory-box"><div class="label">TTS_PROVIDER</div><div class="sub">env var picks the adapter</div></div>
+          <div class="flow-arrow"></div>
+          <div class="adapters-col">
+            <div class="adapter-pill"><span class="dot mock"></span>mock — offline, real playable WAV, zero keys</div>
+            <div class="adapter-pill"><span class="dot google"></span>google — Google Cloud TTS REST</div>
+            <div class="adapter-pill"><span class="dot eleven"></span>elevenlabs — ElevenLabs REST</div>
+          </div>
+        </div>
+        <p class="dek reveal" style="margin:0 auto;text-align:center;max-width:1000px">Every adapter implements <code style="font-family:var(--font-mono);color:var(--accent-a)">synthesize()</code> and <code style="font-family:var(--font-mono);color:var(--accent-a)">listVoices()</code>. A 4th provider means one new file plus one line in the factory — nothing else changes.</p>
+      </div>
+      <div class="page-num">06 / 16</div>
+    </section>
+
+    <!-- ============ SLIDE 7: API TABLE ============ -->
+    <section class="slide">
+      <div class="slide-pad">
+        <div class="eyebrow reveal">Contract</div>
+        <h2 class="slide-title reveal">API reference</h2>
+        <table class="api-table reveal">
+          <thead><tr><th>Method</th><th>Endpoint</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><span class="method get">GET</span></td><td>/api/health</td><td>Status, active provider, uptime, version</td></tr>
+            <tr><td><span class="method get">GET</span></td><td>/api/voices?language=</td><td>Voice catalog, optionally filtered</td></tr>
+            <tr><td><span class="method post">POST</span></td><td>/api/tts</td><td>Synthesize speech → audio URL + duration</td></tr>
+            <tr><td><span class="method get">GET</span></td><td>/api/history?limit=</td><td>Recent generations</td></tr>
+            <tr><td><span class="method delete">DELETE</span></td><td>/api/history/:id</td><td>Remove one entry</td></tr>
+            <tr><td><span class="method delete">DELETE</span></td><td>/api/history</td><td>Clear all history</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="page-num">07 / 16</div>
+    </section>
+
+    <!-- ============ SLIDE 8: ERROR CODES ============ -->
+    <section class="slide">
+      <div class="slide-pad">
+        <div class="eyebrow reveal">Nothing fails silently</div>
+        <h2 class="slide-title reveal">11 error codes, one response shape</h2>
+        <div class="error-grid reveal">
+          <div class="error-row"><code>EMPTY_TEXT</code><span class="status-badge s4">400</span></div>
+          <div class="error-row"><code>TEXT_TOO_LONG</code><span class="status-badge s4">400</span></div>
+          <div class="error-row"><code>UNSUPPORTED_LANGUAGE</code><span class="status-badge s4">400</span></div>
+          <div class="error-row"><code>INVALID_VOICE</code><span class="status-badge s4">400</span></div>
+          <div class="error-row"><code>VOICE_LANGUAGE_MISMATCH</code><span class="status-badge s4">400</span></div>
+          <div class="error-row"><code>INVALID_RATE / INVALID_PITCH</code><span class="status-badge s4">400</span></div>
+          <div class="error-row"><code>RATE_LIMITED</code><span class="status-badge s4">429</span></div>
+          <div class="error-row"><code>PROVIDER_AUTH_FAILED</code><span class="status-badge s4">401</span></div>
+          <div class="error-row"><code>NOT_FOUND</code><span class="status-badge s4">404</span></div>
+          <div class="error-row"><code>PROVIDER_UNAVAILABLE</code><span class="status-badge s5">503</span></div>
+          <div class="error-row"><code>INTERNAL</code><span class="status-badge s5">500</span></div>
+        </div>
+      </div>
+      <div class="page-num">08 / 16</div>
+    </section>
+
+    <!-- ============ SLIDE 9: SECURITY ============ -->
+    <section class="slide">
+      <div class="slide-pad">
+        <div class="eyebrow reveal">Defense in depth</div>
+        <h2 class="slide-title reveal">Security &amp; hardening</h2>
+        <div class="sec-grid">
+          <div class="sec-item reveal"><span class="sec-icon">🔑</span><div><h4>Keys never reach the client</h4><p>Provider keys live only in server-side env vars.</p></div></div>
+          <div class="sec-item reveal"><span class="sec-icon">🛡️</span><div><h4>Server never trusts the client</h4><p>Every field re-validated with zod, regardless of UI checks.</p></div></div>
+          <div class="sec-item reveal"><span class="sec-icon">⏱️</span><div><h4>Rate limited</h4><p>10 requests/minute/IP on /api/tts, with Retry-After.</p></div></div>
+          <div class="sec-item reveal"><span class="sec-icon">🌐</span><div><h4>CORS locked down</h4><p>helmet + cors restricted to one configured client origin.</p></div></div>
+          <div class="sec-item reveal"><span class="sec-icon">🧹</span><div><h4>Nothing kept forever</h4><p>Generated audio auto-deleted after 30 minutes by a janitor sweep.</p></div></div>
+          <div class="sec-item reveal"><span class="sec-icon">🚫</span><div><h4>No leaked internals</h4><p>Centralized error handler — no stack traces or provider details ever reach the client.</p></div></div>
+        </div>
+      </div>
+      <div class="page-num">09 / 16</div>
+    </section>
+
+    <!-- ============ SLIDE 10: DESKTOP SCREENSHOT ============ -->
+    <section class="slide">
+      <div class="slide-pad">
+        <div class="eyebrow reveal">Observed, not assumed</div>
+        <h2 class="slide-title reveal">The interface — desktop</h2>
+        <div class="shot-wrap reveal">
+          <div class="shot-frame desktop"><img src="assets/desktop-player.png" alt="Desktop UI generating and playing speech"></div>
+          <ul class="shot-caption">
+            <li>Dark, glassmorphic card with one deliberate accent gradient</li>
+            <li>Custom player — no bare &lt;audio controls&gt;</li>
+            <li>Live waveform reacts to actual playback</li>
+            <li>History panel updates the moment generation succeeds</li>
+          </ul>
+        </div>
+      </div>
+      <div class="page-num">10 / 16</div>
+    </section>
+
+    <!-- ============ SLIDE 11: MOBILE SCREENSHOT ============ -->
+    <section class="slide">
+      <div class="slide-pad">
+        <div class="eyebrow reveal">360px and up</div>
+        <h2 class="slide-title reveal">Responsive down to mobile</h2>
+        <div class="shot-wrap reveal">
+          <div class="shot-frame mobile"><img src="assets/mobile-player.png" alt="Mobile layout at 375px"></div>
+          <ul class="shot-caption">
+            <li>Single column, no horizontal scroll at any width</li>
+            <li>A real layout bug was caught and fixed here — a &lt;fieldset&gt; wasn't shrinking in its grid track</li>
+            <li>Player controls reflow instead of overflowing</li>
+            <li>Full keyboard operability preserved at every size</li>
+          </ul>
+        </div>
+      </div>
+      <div class="page-num">11 / 16</div>
+    </section>
+
+    <!-- ============ SLIDE 12: VERIFICATION ============ -->
+    <section class="slide">
+      <div class="slide-pad">
+        <div class="eyebrow reveal">Proof, not assertion</div>
+        <h2 class="slide-title reveal">What was actually verified</h2>
+        <div class="two-col">
+          <div class="verify-col reveal">
+            <div class="verify-item"><span class="check">✓</span>Every endpoint tested live via curl, before any UI existed</div>
+            <div class="verify-item"><span class="check">✓</span>All 11 documented error codes triggered and confirmed</div>
+            <div class="verify-item"><span class="check">✓</span>Full browser walkthrough in headless Chrome — type, generate, play, seek, download, replay</div>
+            <div class="verify-item"><span class="check">✓</span>Two real error states triggered live (disabled state, 429 rate limit)</div>
+          </div>
+          <div class="reveal">
+            <div class="bug-card"><h4>Bug caught #1</h4><p>An uncapped toast stack visually buried the UI during rapid actions — fixed with a max-visible cap.</p></div>
+            <div class="bug-card"><h4>Bug caught #2</h4><p>A &lt;fieldset&gt; ignored its CSS grid track, forcing horizontal overflow on mobile — fixed with min-width: 0.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="page-num">12 / 16</div>
+    </section>
+
+    <!-- ============ SLIDE 13: DEPLOYMENT ============ -->
+    <section class="slide">
+      <div class="slide-pad">
+        <div class="eyebrow reveal">Live right now</div>
+        <h2 class="slide-title reveal">Deployment</h2>
+        <div class="deploy-row reveal">
+          <div class="deploy-card">
+            <span class="platform">Vercel</span>
+            <h3>Client</h3>
+            <p style="color:var(--text-secondary);font-size:19px">React/Vite build, static hosting, global edge network.</p>
+            <span class="url" id="vercel-url">https://text-to-speech-theta-one.vercel.app</span>
+          </div>
+          <div class="deploy-card">
+            <span class="platform">Railway</span>
+            <h3>Server</h3>
+            <p style="color:var(--text-secondary);font-size:19px">Express API, auto-deployed from source, env-configured.</p>
+            <span class="url" id="railway-url">https://text-to-speech-server-production.up.railway.app</span>
+          </div>
+        </div>
+      </div>
+      <div class="page-num">13 / 16</div>
+    </section>
+
+    <!-- ============ SLIDE 14: LIMITATIONS ============ -->
+    <section class="slide">
+      <div class="slide-pad">
+        <div class="eyebrow reveal">Honest accounting</div>
+        <h2 class="slide-title reveal">Known limitations &amp; next steps</h2>
+        <ul class="limit-list reveal">
+          <li><span class="tag">MOCK</span>Always returns WAV regardless of requested format — no codec dependency in the stack.</li>
+          <li><span class="tag">ELEVENLABS</span>No native pitch control; rate maps to its own speed setting instead.</li>
+          <li><span class="tag">CACHE</span>In-memory and per-process by design — scoped to the same 30-minute life as the audio files.</li>
+          <li><span class="tag">NEXT</span>Point at a real provider: set TTS_PROVIDER + a key, restart — nothing else changes.</li>
+        </ul>
+      </div>
+      <div class="page-num">14 / 16</div>
+    </section>
+
+    <!-- ============ SLIDE 15: DELIVERABLES ============ -->
+    <section class="slide">
+      <div class="slide-pad">
+        <div class="eyebrow reveal">Checklist</div>
+        <h2 class="slide-title reveal">Final deliverables</h2>
+        <div class="deliv-grid reveal">
+          <div class="deliv-item"><span class="check">✓</span>Source code</div>
+          <div class="deliv-item"><span class="check">✓</span>GitHub repository</div>
+          <div class="deliv-item"><span class="check">✓</span>README documentation</div>
+          <div class="deliv-item"><span class="check">✓</span>Database schema</div>
+          <div class="deliv-item"><span class="check">✓</span>API documentation</div>
+          <div class="deliv-item"><span class="check">✓</span>UI screenshots</div>
+          <div class="deliv-item"><span class="check">✓</span>Live deployment URLs</div>
+          <div class="deliv-item"><span class="check">✓</span>Postman collection</div>
+          <div class="deliv-item"><span class="check">✓</span>Project presentation</div>
+          <div class="deliv-item"><span class="check">✓</span>Project demonstration</div>
+        </div>
+      </div>
+      <div class="page-num">15 / 16</div>
+    </section>
+
+    <!-- ============ SLIDE 16: CLOSING ============ -->
+    <section class="slide closing-slide">
+      <div class="slide-pad">
+        <span class="brand-mark reveal" style="width:80px;height:80px">
+          <svg width="38" height="38" viewBox="0 0 16 16" fill="none">
+            <path d="M2 6.5h2L7 3v10L4 9.5H2v-3z" fill="currentColor"/>
+            <path d="M9.5 5.3a4 4 0 010 5.4M11.3 3.5a6.6 6.6 0 010 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+          </svg>
+        </span>
+        <h1 class="deck-title reveal" style="font-size:72px">Thank you</h1>
+        <p class="dek reveal">Text to Speech — built, verified, and shipped end to end.</p>
+        <div class="closing-links reveal">
+          <a href="https://github.com/Yuv1008/text-to-speech" target="_blank" rel="noopener">github.com/Yuv1008/text-to-speech</a>
+          <a href="https://text-to-speech-theta-one.vercel.app" target="_blank" rel="noopener">Live app ↗</a>
+        </div>
+      </div>
+      <div class="page-num">16 / 16</div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Inline editing affordance -->
+<div class="edit-hotzone" id="editHotzone"></div>
+<button class="edit-toggle" id="editToggle" title="Edit mode (E)">✏️</button>
+
+<div class="deck-controls">
+  <button id="prevBtn" title="Previous (←)">‹</button>
+  <span class="count"><span id="curNum">1</span> / <span id="totNum">16</span></span>
+  <button id="nextBtn" title="Next (→)">›</button>
+</div>
+
+<script>
+/* ===========================================
+   SLIDE PRESENTATION CONTROLLER
+   Handles stage scaling, navigation, and persistence.
+   =========================================== */
+class SlidePresentation {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.currentSlide = 0;
+        this.stage = document.getElementById('deckStage');
+        this.curNum = document.getElementById('curNum');
+        this.totNum = document.getElementById('totNum');
+        this.totNum.textContent = this.slides.length;
+        this.setupStageScale();
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.setupButtons();
+        this.showSlide(0);
+    }
+
+    setupStageScale() {
+        const scale = () => {
+            const factor = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+            const x = (window.innerWidth - 1920 * factor) / 2;
+            const y = (window.innerHeight - 1080 * factor) / 2;
+            this.stage.style.transform = `translate(${x}px, ${y}px) scale(${factor})`;
+        };
+        scale();
+        window.addEventListener('resize', scale);
+    }
+
+    setupKeyboardNav() {
+        document.addEventListener('keydown', (e) => {
+            if (e.target.getAttribute('contenteditable') === 'true') return;
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); this.showSlide(this.currentSlide + 1); }
+            if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); this.showSlide(this.currentSlide - 1); }
+        });
+    }
+
+    setupTouchNav() {
+        let touchStartX = 0;
+        this.stage.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+        this.stage.addEventListener('touchend', (e) => {
+            const dx = e.changedTouches[0].screenX - touchStartX;
+            if (Math.abs(dx) > 50) this.showSlide(this.currentSlide + (dx < 0 ? 1 : -1));
+        }, { passive: true });
+    }
+
+    setupButtons() {
+        document.getElementById('nextBtn').addEventListener('click', () => this.showSlide(this.currentSlide + 1));
+        document.getElementById('prevBtn').addEventListener('click', () => this.showSlide(this.currentSlide - 1));
+    }
+
+    showSlide(index) {
+        this.currentSlide = Math.max(0, Math.min(index, this.slides.length - 1));
+        this.slides.forEach((slide, i) => {
+            slide.classList.toggle('active', i === this.currentSlide);
+            slide.classList.toggle('visible', i === this.currentSlide);
+        });
+        this.curNum.textContent = this.currentSlide + 1;
+    }
+}
+
+const presentation = new SlidePresentation();
+
+/* ===========================================
+   INLINE EDITING
+   Click any text to edit; Ctrl/Cmd+S saves to localStorage.
+   =========================================== */
+class InlineEditor {
+    constructor() {
+        this.isActive = false;
+        this.storageKey = 'tts-presentation-edits-v1';
+        this.toggle = document.getElementById('editToggle');
+        this.hotzone = document.getElementById('editHotzone');
+        this.editableSelectors = 'h1, h2, h3, h4, p, li, span.chip, td, code, .url';
+        this.restoreEdits();
+        this.bindEvents();
+    }
+
+    bindEvents() {
+        this.toggle.addEventListener('click', () => this.toggleEditMode());
+        let hideTimeout = null;
+        this.hotzone.addEventListener('mouseenter', () => { clearTimeout(hideTimeout); this.toggle.classList.add('show'); });
+        this.hotzone.addEventListener('mouseleave', () => { hideTimeout = setTimeout(() => { if (!this.isActive) this.toggle.classList.remove('show'); }, 400); });
+        this.toggle.addEventListener('mouseenter', () => clearTimeout(hideTimeout));
+        this.toggle.addEventListener('mouseleave', () => { hideTimeout = setTimeout(() => { if (!this.isActive) this.toggle.classList.remove('show'); }, 400); });
+        this.hotzone.addEventListener('click', () => this.toggleEditMode());
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'e' || e.key === 'E') && document.activeElement.getAttribute('contenteditable') !== 'true') this.toggleEditMode();
+            if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); this.saveEdits(); }
+        });
+    }
+
+    toggleEditMode() {
+        this.isActive = !this.isActive;
+        this.toggle.classList.toggle('active', this.isActive);
+        document.querySelectorAll(this.editableSelectors).forEach((el) => {
+            el.setAttribute('contenteditable', this.isActive ? 'true' : 'false');
+        });
+        if (!this.isActive) this.saveEdits();
+    }
+
+    saveEdits() {
+        const edits = {};
+        document.querySelectorAll(this.editableSelectors).forEach((el, i) => {
+            const key = el.id || `el-${i}-${el.tagName}`;
+            edits[key] = el.innerHTML;
+        });
+        try { localStorage.setItem(this.storageKey, JSON.stringify(edits)); } catch (e) {}
+    }
+
+    restoreEdits() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(this.storageKey) || '{}');
+            document.querySelectorAll(this.editableSelectors).forEach((el, i) => {
+                const key = el.id || `el-${i}-${el.tagName}`;
+                if (saved[key]) el.innerHTML = saved[key];
+            });
+        } catch (e) {}
+    }
+}
+
+new InlineEditor();
+</script>
+</body>
+</html>

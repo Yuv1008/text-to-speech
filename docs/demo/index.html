@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Text to Speech — Demonstration</title>
+<meta name="description" content="A step-by-step visual walkthrough of the Text to Speech app, captured from a real, verified test run.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#08090c; --bg-1:#0e1015; --bg-2:#14171e; --bg-3:#1b1f28;
+    --border-hairline:#262b36; --border-strong:#343b4a;
+    --text-primary:#eef0f5; --text-secondary:#9aa3b7; --text-tertiary:#5c6478;
+    --accent-a:#ff4f8b; --accent-b:#6a5bff;
+    --accent-gradient:linear-gradient(135deg,var(--accent-a),var(--accent-b));
+    --accent-solid:#8b6bff; --success:#34d399; --danger:#f87171;
+    --font-display:'Outfit',sans-serif; --font-body:'Public Sans',sans-serif; --font-mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(106,91,255,.14), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(255,79,139,.10), transparent 55%),
+      var(--bg-0);
+    color:var(--text-primary); font-family:var(--font-body); line-height:1.6;
+  }
+  h1,h2,h3{font-family:var(--font-display); margin:0; text-wrap:balance}
+  .wrap{max-width:920px; margin:0 auto; padding:0 24px}
+
+  header{padding:72px 0 56px; text-align:center}
+  .brand-row{display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:20px}
+  .brand-mark{width:52px;height:52px;border-radius:14px;background:var(--accent-gradient);display:grid;place-items:center;color:#0a0a0f}
+  .eyebrow{font-family:var(--font-mono); font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent-a); display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:18px}
+  .eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent-gradient)}
+  h1{font-size:clamp(32px,5vw,48px); font-weight:800; letter-spacing:-.01em}
+  header p{color:var(--text-secondary); font-size:18px; max-width:56ch; margin:16px auto 0}
+  .link-row{display:flex; gap:12px; justify-content:center; margin-top:28px; flex-wrap:wrap}
+  .link-row a{font-family:var(--font-mono); font-size:14px; color:var(--text-primary); background:var(--bg-2); border:1px solid var(--border-strong); padding:10px 18px; border-radius:10px; text-decoration:none}
+  .link-row a:hover{border-color:var(--accent-solid)}
+
+  .steps{display:flex; flex-direction:column; gap:64px; padding:32px 0 100px}
+  .step{display:grid; grid-template-columns:64px 1fr; gap:28px}
+  .step-num{font-family:var(--font-mono); font-size:15px; color:var(--text-tertiary); padding-top:6px}
+  .step-body h2{font-size:24px; font-weight:700; margin-bottom:8px}
+  .step-body p{color:var(--text-secondary); font-size:16px; max-width:64ch; margin-bottom:20px}
+  .shot{border-radius:16px; overflow:hidden; border:1px solid var(--border-strong); box-shadow:0 30px 60px -28px rgba(0,0,0,.7)}
+  .shot img{display:block; width:100%; height:auto}
+  .shot.mobile{max-width:320px}
+  .tag{display:inline-block; font-family:var(--font-mono); font-size:12px; padding:3px 10px; border-radius:999px; margin-bottom:10px}
+  .tag.ok{background:rgba(52,211,153,.15); color:var(--success)}
+  .tag.err{background:rgba(248,113,113,.15); color:var(--danger)}
+
+  footer{border-top:1px solid var(--border-hairline); padding:48px 0 72px; text-align:center; color:var(--text-tertiary); font-size:14px}
+
+  @media (max-width:640px){
+    .step{grid-template-columns:1fr}
+    .step-num{padding-top:0}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Project Demonstration</div>
+    <div class="brand-row">
+      <span class="brand-mark">
+        <svg width="24" height="24" viewBox="0 0 16 16" fill="none">
+          <path d="M2 6.5h2L7 3v10L4 9.5H2v-3z" fill="currentColor"/>
+          <path d="M9.5 5.3a4 4 0 010 5.4M11.3 3.5a6.6 6.6 0 010 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+        </svg>
+      </span>
+      <h1>Text to Speech, walked through</h1>
+    </div>
+    <p>Every screenshot below is real — captured from an actual headless-browser test run against the running app, not mocked up. This is the exact sequence used to verify the build.</p>
+    <div class="link-row">
+      <a href="https://text-to-speech-theta-one.vercel.app" target="_blank" rel="noopener">Try the live app ↗</a>
+      <a href="https://github.com/Yuv1008/text-to-speech" target="_blank" rel="noopener">View source ↗</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-body">
+        <h2>Start with an empty prompt</h2>
+        <p>Text field empty, defaults to English (US) / Ava, speed 1.00×, pitch 0. Notice the Generate button is already disabled — there's nothing to speak yet. (History already has entries here from earlier test runs against this same server.)</p>
+        <div class="shot"><img src="assets/01-desktop-initial.png" alt="Initial empty state of the app"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-body">
+        <h2>Type the text</h2>
+        <p>Live character and word count update as you type, and the Generate button enables the moment there's real content.</p>
+        <div class="shot"><img src="assets/02-desktop-text-typed.png" alt="Text typed into the input"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-body">
+        <h2>Switch to a non-default language</h2>
+        <p>Selecting French refetches the voice catalog automatically — the voice list resets to the one voice available for that language (Émile).</p>
+        <div class="shot"><img src="assets/03-desktop-language-french.png" alt="Language switched to French"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-body">
+        <h2>Shape the delivery</h2>
+        <p>Speed pushed to 1.50× and pitch to +4 — both sliders show a live numeric readout as they move.</p>
+        <div class="shot"><img src="assets/04-desktop-sliders-moved.png" alt="Speed and pitch sliders adjusted"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">05</div>
+      <div class="step-body">
+        <span class="tag ok">Generated</span>
+        <h2>Generate speech</h2>
+        <p>The request hits <code>POST /api/tts</code>, the server synthesizes and caches the result, and the custom audio player appears with a success toast.</p>
+        <div class="shot"><img src="assets/05-desktop-generated.png" alt="Speech generated, player appears"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">06</div>
+      <div class="step-body">
+        <h2>Play it back</h2>
+        <p>Custom play/pause control — no bare <code>&lt;audio controls&gt;</code> — with the waveform reacting to actual playback via the Web Audio API.</p>
+        <div class="shot"><img src="assets/06-desktop-playing.png" alt="Audio playing with waveform animation"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">07</div>
+      <div class="step-body">
+        <h2>Seek within the clip</h2>
+        <p>Clicking the scrubber jumps playback to that point — elapsed time and the progress fill update immediately.</p>
+        <div class="shot"><img src="assets/07-desktop-seeked.png" alt="Scrubber seeked to a new position"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">08</div>
+      <div class="step-body">
+        <h2>It lands in history</h2>
+        <p>Every successful generation is persisted to SQLite and shows up immediately in the History panel.</p>
+        <div class="shot"><img src="assets/08-desktop-history.png" alt="History panel populated"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">09</div>
+      <div class="step-body">
+        <h2>Replay from history</h2>
+        <p>Clicking a past entry repopulates the form — text, language, and voice — and loads its audio straight into the player.</p>
+        <div class="shot"><img src="assets/09-desktop-replayed-from-history.png" alt="Replaying a past generation from history"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">10</div>
+      <div class="step-body">
+        <span class="tag err">Error state 1</span>
+        <h2>Clearing the text disables Generate</h2>
+        <p>No server round-trip needed to catch this — the button disables the instant the input becomes invalid.</p>
+        <div class="shot"><img src="assets/10-desktop-error-empty-disabled.png" alt="Generate button disabled after clearing text"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">11</div>
+      <div class="step-body">
+        <span class="tag err">Error state 2</span>
+        <h2>A real rate-limit error</h2>
+        <p>Eleven genuine, sequential submissions in a row trip the server's 10-requests-per-minute limit — the eleventh comes back as a real <code>429</code>, rendered through the same ErrorMessage component with a Retry action.</p>
+        <div class="shot"><img src="assets/11-desktop-error-rate-limited.png" alt="Rate limit error message shown"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">12</div>
+      <div class="step-body">
+        <h2>The same flow, on mobile</h2>
+        <p>Single column at 375px, no horizontal scroll, full functionality — generation, playback, and history all work identically down to phone width.</p>
+        <div class="shot mobile"><img src="assets/14-mobile-generated-player.png" alt="Mobile layout with generated audio player"></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  Captured with a headless Chrome driver against the running app · Text to Speech
+</footer>
+
+</body>
+</html>

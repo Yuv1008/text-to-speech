@@ -5,6 +5,11 @@ pitch, generate speech, play it in a custom audio player, and download it. Runs
 completely offline out of the box — no API keys, no signup — and upgrades to a real
 cloud TTS provider by changing one environment variable.
 
+**Live app:** https://text-to-speech-theta-one.vercel.app
+**API:** https://text-to-speech-server-production.up.railway.app
+**Presentation:** https://presentation-jxsya56k0-yuv6.vercel.app
+**Demo walkthrough:** https://demo-q6bnrsoqq-yuv6.vercel.app
+
 |                             |                            |
 | --------------------------- | -------------------------- |
 | ![Desktop, playing a clip](docs/screenshots/desktop-player.png) | ![Mobile layout](docs/screenshots/mobile-player.png) |
@@ -211,15 +216,18 @@ flowchart LR
 
 ## Deployment
 
+**Currently live:** client on Vercel at https://text-to-speech-theta-one.vercel.app,
+server on Railway at https://text-to-speech-server-production.up.railway.app.
+
 **Client → Vercel.** Root directory `client/`, build command `npm run build`,
 output `dist`. Set `VITE_API_URL` in the Vercel project's environment variables to
 your deployed server's `/api` URL.
 
-**Server → Render.** Root directory `server/`, build command `npm install`, start
-command `npm start`. Set `CLIENT_ORIGIN` to your deployed Vercel URL, and add
-`TTS_PROVIDER` + the matching key if you're using a real provider. Render's disk
-is ephemeral on most plans — that's fine for `tmp/audio` (files are meant to be
-short-lived anyway) but mount a persistent disk at `DB_PATH`'s directory if you
+**Server → Render or Railway.** Root directory `server/`, build command `npm install`,
+start command `npm start`. Set `CLIENT_ORIGIN` to your deployed client URL, and add
+`TTS_PROVIDER` + the matching key if you're using a real provider. Both platforms'
+disks are ephemeral by default — that's fine for `tmp/audio` (files are meant to be
+short-lived anyway) but mount a persistent volume at `DB_PATH`'s directory if you
 want history to survive a redeploy.
 
 ## Troubleshooting
