@@ -7,8 +7,8 @@ cloud TTS provider by changing one environment variable.
 
 **Live app:** https://text-to-speech-theta-one.vercel.app
 **API:** https://text-to-speech-server-production.up.railway.app
-**Presentation:** https://presentation-jxsya56k0-yuv6.vercel.app
-**Demo walkthrough:** https://demo-q6bnrsoqq-yuv6.vercel.app
+**Presentation:** https://presentation-yuv6.vercel.app
+**Demo walkthrough:** https://demo-yuv6.vercel.app
 
 |                             |                            |
 | --------------------------- | -------------------------- |

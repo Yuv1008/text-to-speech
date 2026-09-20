@@ -29,18 +29,7 @@
   h1,h2,h3{font-family:var(--font-display); margin:0; text-wrap:balance}
   .wrap{max-width:920px; margin:0 auto; padding:0 24px}
 
-  header{padding:72px 0 56px; text-align:center}
-  .brand-row{display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:20px}
-  .brand-mark{width:52px;height:52px;border-radius:14px;background:var(--accent-gradient);display:grid;place-items:center;color:#0a0a0f}
-  .eyebrow{font-family:var(--font-mono); font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent-a); display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:18px}
-  .eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent-gradient)}
-  h1{font-size:clamp(32px,5vw,48px); font-weight:800; letter-spacing:-.01em}
-  header p{color:var(--text-secondary); font-size:18px; max-width:56ch; margin:16px auto 0}
-  .link-row{display:flex; gap:12px; justify-content:center; margin-top:28px; flex-wrap:wrap}
-  .link-row a{font-family:var(--font-mono); font-size:14px; color:var(--text-primary); background:var(--bg-2); border:1px solid var(--border-strong); padding:10px 18px; border-radius:10px; text-decoration:none}
-  .link-row a:hover{border-color:var(--accent-solid)}
-
-  .steps{display:flex; flex-direction:column; gap:64px; padding:32px 0 100px}
+  .steps{display:flex; flex-direction:column; gap:64px; padding:72px 0 100px}
   .step{display:grid; grid-template-columns:64px 1fr; gap:28px}
   .step-num{font-family:var(--font-mono); font-size:15px; color:var(--text-tertiary); padding-top:6px}
   .step-body h2{font-size:24px; font-weight:700; margin-bottom:8px}
@@ -52,8 +41,6 @@
   .tag.ok{background:rgba(52,211,153,.15); color:var(--success)}
   .tag.err{background:rgba(248,113,113,.15); color:var(--danger)}
 
-  footer{border-top:1px solid var(--border-hairline); padding:48px 0 72px; text-align:center; color:var(--text-tertiary); font-size:14px}
-
   @media (max-width:640px){
     .step{grid-template-columns:1fr}
     .step-num{padding-top:0}
@@ -61,26 +48,6 @@
 </style>
 </head>
 <body>
-
-<header>
-  <div class="wrap">
-    <div class="eyebrow">Project Demonstration</div>
-    <div class="brand-row">
-      <span class="brand-mark">
-        <svg width="24" height="24" viewBox="0 0 16 16" fill="none">
-          <path d="M2 6.5h2L7 3v10L4 9.5H2v-3z" fill="currentColor"/>
-          <path d="M9.5 5.3a4 4 0 010 5.4M11.3 3.5a6.6 6.6 0 010 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/>
-        </svg>
-      </span>
-      <h1>Text to Speech, walked through</h1>
-    </div>
-    <p>Every screenshot below is real — captured from an actual headless-browser test run against the running app, not mocked up. This is the exact sequence used to verify the build.</p>
-    <div class="link-row">
-      <a href="https://text-to-speech-theta-one.vercel.app" target="_blank" rel="noopener">Try the live app ↗</a>
-      <a href="https://github.com/Yuv1008/text-to-speech" target="_blank" rel="noopener">View source ↗</a>
-    </div>
-  </div>
-</header>
 
 <main class="wrap">
   <div class="steps">
@@ -198,10 +165,6 @@
 
   </div>
 </main>
-
-<footer>
-  Captured with a headless Chrome driver against the running app · Text to Speech
-</footer>
 
 </body>
 </html>
